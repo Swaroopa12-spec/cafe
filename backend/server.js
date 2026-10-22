@@ -75,7 +75,8 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
         return res.status(500).send('Could not record order.');
       }
     } else {
-      console.error('Paid order completed, but SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing.');
+      // Stripe remains the payment ledger when Supabase order storage is not configured.
+      console.log(`Payment completed in Stripe: ${session.id} (${session.payment_status}).`);
     }
   }
   return res.json({ received: true });
@@ -89,14 +90,12 @@ app.get('/api/config', (_req, res) => res.json({
   authEnabled: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
   supabaseUrl: process.env.SUPABASE_URL || null,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || null,
-  paymentsEnabled: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+  paymentsEnabled: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
 }));
 app.get('/api/menu', (_req, res) => res.json(Object.entries(productCatalog).map(([id, item]) => ({ id, ...item }))));
 
 app.post('/api/checkout/session', async (req, res) => {
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET || !process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return res.status(503).json({ error: 'Payments and order recording are not fully configured.' });
-  }
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) return res.status(503).json({ error: 'Stripe payments are not configured.' });
   const origin = req.body?.origin;
   if (!allowedOrigins.has(origin)) return res.status(400).json({ error: 'Invalid checkout website.' });
   const requested = req.body?.items;

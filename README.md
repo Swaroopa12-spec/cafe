@@ -11,11 +11,12 @@ The frontend uses the existing Render API at `https://have-a-time-api.onrender.c
 | `FRONTEND_URL` | `https://cafe-theta-blush.vercel.app` |
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Supabase publishable/anon key (safe for browser use) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role/secret key (server only) |
 | `STRIPE_SECRET_KEY` | Stripe secret key; begin with `sk_test_` for test payments |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for the webhook endpoint below |
 
-In Supabase Authentication settings, enable email/password and set the site URL and allowed redirect URL to `https://cafe-theta-blush.vercel.app`. Apply [`backend/orders.sql`](backend/orders.sql) in the Supabase SQL Editor so successful payments can be recorded. Do not create public access policies for the orders table.
+The two Stripe variables enable payment. Configure Supabase separately for real user accounts; add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and (optionally) `SUPABASE_SERVICE_ROLE_KEY` if you want account login and a cafe-side orders table. The service role key is server-only.
+
+If you configure Supabase, enable email/password and set the site URL and allowed redirect URL to `https://cafe-theta-blush.vercel.app`. Apply [`backend/orders.sql`](backend/orders.sql) in the Supabase SQL Editor to save successful payments in the cafe database. Do not create public access policies for the orders table. Without Supabase order storage, payments are still recorded in Stripe and can be viewed in its Dashboard.
 
 In Stripe, add a webhook endpoint at `https://have-a-time-api.onrender.com/api/stripe/webhook` and subscribe it to `checkout.session.completed`. Copy its signing secret into `STRIPE_WEBHOOK_SECRET`. For launch, replace the test Stripe key with the live key and update the webhook secret for the live-mode endpoint.
 
@@ -26,5 +27,5 @@ The API builds with `npm --prefix backend install` and starts with `npm --prefix
 - Checkout uses Stripe-hosted payment pages and INR prices defined on the server in `backend/server.js`.
 - Email receipts and payment processing are handled by Stripe. Confirm Supabase email delivery and Stripe receipt settings before taking customer orders.
 - Successful payments are recorded by the Stripe webhook. A webhook delivery failure should be reviewed and retried in the Stripe dashboard.
-- Real account and payment flows remain disabled until the listed service credentials and settings are configured.
+- Real account and payment flows remain disabled until their respective service credentials and settings are configured.
 
