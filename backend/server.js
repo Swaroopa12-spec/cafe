@@ -5,18 +5,21 @@ const Stripe = require('stripe');
 const app = express();
 const port = Number(process.env.PORT) || 10000;
 const productCatalog = {
-  coffee: { name: 'Slow Drip Coffee', price: 160 },
-  cappuccino: { name: 'Little Cappuccino', price: 190 },
-  tea: { name: 'Classic Masala Chai', price: 110 },
-  'green-tea': { name: 'Green Tea', price: 120 },
-  'ginger-tea': { name: 'Fresh Ginger Tea', price: 130 },
-  milkshake: { name: 'Berry Cloud Shake', price: 220 },
-  'egg-puff': { name: 'Golden Egg Puff', price: 75 },
-  'curry-puff': { name: 'Garden Curry Puff', price: 65 },
-  'chocolate-cake': { name: 'Chocolate Daydream', price: 210 },
-  cake: { name: 'Vanilla Berry Cake', price: 195 },
-  biscuits: { name: 'Butter Biscuits', price: 80 },
-  'black-tea': { name: 'A Cup of Black Tea', price: 95 },
+  coffee: { name: 'Coffee', price: 59 },
+  'masala-tea': { name: 'Masala Tea', price: 99 },
+  'black-tea': { name: 'Black Tea', price: 99 },
+  'black-coffee': { name: 'Black Coffee', price: 89 },
+  'green-tea': { name: 'Green Tea', price: 69 },
+  'ginger-tea': { name: 'Ginger Tea', price: 99 },
+  milkshake: { name: 'Milkshake', price: 149 },
+  'chocolate-milkshake': { name: 'Chocolate Milkshake', price: 149 },
+  'rose-milk': { name: 'Rose Milk', price: 89 },
+  'egg-puff': { name: 'Egg Puff', price: 39 },
+  'curry-puff': { name: 'Curry Puff', price: 39 },
+  'chocolate-cookies': { name: 'Chocolate Cookies', price: 49 },
+  'butter-cookies': { name: 'Butter Cookies', price: 49 },
+  'chocolate-pastries': { name: 'Chocolate Pastries', price: 129 },
+  cakes: { name: 'Cakes (all types)', price: 299 },
 };
 
 const allowedOrigins = new Set([
