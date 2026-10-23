@@ -67,6 +67,11 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
           total_amount: session.amount_total,
           currency: session.currency,
           payment_status: session.payment_status,
+          fulfillment_type: session.metadata?.fulfillment_type || 'pickup',
+          order_note: session.metadata?.order_note || null,
+          customer_name: session.customer_details?.name || null,
+          customer_phone: session.customer_details?.phone || null,
+          fulfillment_status: 'new',
           items: lineItems.data.map(item => ({ name: item.description, quantity: item.quantity, total_amount: item.amount_total })),
         }),
       });
@@ -104,6 +109,12 @@ app.post('/api/checkout/session', async (req, res) => {
   const origin = req.body?.origin;
   if (!allowedOrigins.has(origin)) return res.status(400).json({ error: 'Invalid checkout website.' });
   const requested = req.body?.items;
+  const fulfillmentType = req.body?.fulfillmentType;
+  if (!['dine_in', 'pickup'].includes(fulfillmentType)) {
+    return res.status(400).json({ error: 'Choose dine-in or pickup for your order.' });
+  }
+  const orderNote = typeof req.body?.orderNote === 'string' ? req.body.orderNote.trim() : '';
+  if (orderNote.length > 250) return res.status(400).json({ error: 'Order instructions must be 250 characters or fewer.' });
   if (!Array.isArray(requested) || requested.length < 1 || requested.length > 30) {
     return res.status(400).json({ error: 'Your cart is empty or invalid.' });
   }
@@ -136,9 +147,10 @@ app.post('/api/checkout/session', async (req, res) => {
         },
       })),
       ...(email ? { customer_email: email } : {}),
+      phone_number_collection: { enabled: true },
       success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/?payment=cancelled`,
-      metadata: { source: 'have-a-time-cafe' },
+      metadata: { source: 'have-a-time-cafe', fulfillment_type: fulfillmentType, order_note: orderNote },
     });
     return res.json({ url: session.url });
   } catch (error) {
