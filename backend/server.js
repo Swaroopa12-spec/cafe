@@ -86,12 +86,17 @@ app.use(express.json({ limit: '32kb' }));
 
 app.get('/', (_req, res) => res.json({ service: 'Have A Time Cafe API', ok: true }));
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
-app.get('/api/config', (_req, res) => res.json({
-  authEnabled: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
-  supabaseUrl: process.env.SUPABASE_URL || null,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY || null,
-  paymentsEnabled: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
-}));
+app.get('/api/config', (_req, res) => {
+  const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+  return res.json({
+    authEnabled: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY),
+    supabaseUrl: process.env.SUPABASE_URL || null,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || null,
+    paymentsEnabled: Boolean(stripeKey && process.env.STRIPE_WEBHOOK_SECRET),
+    paymentMode: stripeKey.startsWith('sk_live_') ? 'live' : stripeKey.startsWith('sk_test_') ? 'test' : 'unknown',
+    orderStorageEnabled: Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY),
+  });
+});
 app.get('/api/menu', (_req, res) => res.json(Object.entries(productCatalog).map(([id, item]) => ({ id, ...item }))));
 
 app.post('/api/checkout/session', async (req, res) => {
